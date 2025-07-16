@@ -5,7 +5,7 @@ from flask_migrate import Migrate
 import os
 from pathlib import Path
 
-from models import db, User, Incident, Media, Notification, StatusHistory
+from app.models import db, User, Incident, Media, Notification, StatusHistory
 
 
 app = Flask(__name__, instance_relative_config=True)
