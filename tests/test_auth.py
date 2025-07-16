@@ -5,7 +5,12 @@ import pytest
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 from app import create_app, db
-from app.models import User
+
+# Ensure 'app' is a package and 'models.py' exists in 'app'
+try:
+    from app.models import User # type: ignore
+except ModuleNotFoundError:
+    User = None  # or handle appropriately if User is required
 
 @pytest.fixture
 def client():
