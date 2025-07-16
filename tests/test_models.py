@@ -1,4 +1,4 @@
-from ..models import User, Incident
+from ..app.models import User, Incident
 
 def test_user_model(test_db):
     user = User(
