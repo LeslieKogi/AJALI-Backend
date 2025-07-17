@@ -1,22 +1,35 @@
-#!/usr/bin/env python3
 from flask import Flask, request, make_response, jsonify
 from flask_cors import CORS
-from flask_migrate import Migrate
-from flasgger import Swagger
 import os
 from pathlib import Path
-
 from dotenv import load_dotenv
 import cloudinary
-import cloudinary.uploader
-from cloudinary.utils import cloudinary_url
-
-from models import db, User, Incident, Media, Notification, StatusHistory
+from flasgger import Swagger
 
 # Load environment variables
 load_dotenv()
 
-# Cloudinary config
+# Import extension instances
+from extensions import db, migrate, jwt
+from swagger_config import swagger_template, swagger_config
+
+# Import blueprints
+from routes.auth import auth_bp
+from routes.incidents import incidents_bp
+
+# Initialize Flask app
+app = Flask(__name__, instance_relative_config=True)
+CORS(app)
+
+# Database configuration
+Path(app.instance_path).mkdir(parents=True, exist_ok=True)
+db_path = Path(app.instance_path) / "ajali.db"
+app.config["SQLALCHEMY_DATABASE_URI"] = f"sqlite:///{db_path}"
+app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
+
+app.config['JWT_SECRET_KEY'] = os.getenv('JWT_SECRET_KEY')
+
+# Cloudinary configuration
 cloudinary.config(
     cloud_name="ddmykppxn",
     api_key="936797567636992",
@@ -24,180 +37,59 @@ cloudinary.config(
     secure=True
 )
 
-app = Flask(__name__, instance_relative_config=True)
-
-# Setup SQLite DB
-Path(app.instance_path).mkdir(parents=True, exist_ok=True)
-db_path = Path(app.instance_path) / "ajali.db"
-app.config["SQLALCHEMY_DATABASE_URI"] = f"sqlite:///{db_path}"
-app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
-app.json.compact = False
-
-# Init extensions
-CORS(app)
-migrate = Migrate(app, db)
-db.init_app(app)
-with app.app_context():
-    db.create_all()
-
-# Swagger config
-swagger_config = {
-    "headers": [],
-    "specs": [
-        {
-            "endpoint": 'apispec',
-            "route": '/apispec.json',
-            "rule_filter": lambda rule: True,
-            "model_filter": lambda tag: True,
-        }
-    ],
-    "static_url_path": "/flasgger_static",
-    "swagger_ui": True,
-    "specs_route": "/apidocs/"
+# Swagger configuration
+app.config['SWAGGER'] = {
+    "title": "AJALI API Docs",
+    "uiversion": 3
 }
-swagger = Swagger(app, config=swagger_config)
+swagger = Swagger(app, config=swagger_config, template=swagger_template)
 
-# In-memory "database" (for example only)
-incidents = {}
-next_id = 1
+# Initialize extensions
+db.init_app(app)
+migrate.init_app(app, db)
 
+# Import models after db is initialized
+from models import User, Incident, Media, Notification, StatusHistory
+
+# Set up JWT after importing User
+jwt.init_app(app)
+@jwt.user_identity_loader
+def user_identity_lookup(user_id):
+    return user_id  # it's already an integer, no .id needed
+
+
+@jwt.user_lookup_loader
+def user_lookup_callback(_jwt_header, jwt_data):
+    identity = jwt_data["sub"]
+    return User.query.get(identity)
+
+# Register blueprints
+app.register_blueprint(auth_bp, url_prefix="/auth")
+app.register_blueprint(incidents_bp, url_prefix="/incidents")
+
+# Error handlers
+@app.errorhandler(404)
+def not_found(error):
+    return jsonify({"message": "Resource not found"}), 404
+
+@app.errorhandler(500)
+def server_error(error):
+    return jsonify({"message": "Internal server error"}), 500
+
+# Root endpoint
 @app.route('/', methods=['GET'])
 def index():
-    return make_response(jsonify({"message": "Welcome to Ajali API"}), 200)
-
-@app.route('/incidents', methods=['POST'])
-def create_incident():
     """
-    Create a new incident
+    Welcome endpoint
     ---
-    tags:
-      - Incidents
-    parameters:
-      - name: body
-        in: body
-        required: true
-        schema:
-          required:
-            - title
-            - description
-          properties:
-            title:
-              type: string
-              example: Accident on A104
-            description:
-              type: string
-              example: A minor traffic collision near town
-    responses:
-      201:
-        description: Incident created
-    """
-    global next_id
-    data = request.get_json()
-    incident = {
-        "id": next_id,
-        "title": data.get("title"),
-        "description": data.get("description")
-    }
-    incidents[next_id] = incident
-    next_id += 1
-    return jsonify(incident), 201
-
-@app.route('/upload', methods=['POST'])
-def upload_file():
-    """
-    Upload a file to Cloudinary
-    ---
-    tags:
-      - Media
-    consumes:
-      - multipart/form-data
-    parameters:
-      - name: file
-        in: formData
-        type: file
-        required: true
-        description: Image file to upload
     responses:
       200:
-        description: Upload successful
+        description: Welcome to Ajali API
     """
-    if 'file' not in request.files:
-        return jsonify({"error": "No file provided"}), 400
+    return jsonify({"message": "Welcome to Ajali API"}), 200
 
-    file_to_upload = request.files['file']
-
-    try:
-        result = cloudinary.uploader.upload(file_to_upload)
-
-        return jsonify({
-            "message": "Upload successful",
-            "secure_url": result["secure_url"],
-            "public_id": result["public_id"]
-        }), 200
-
-    except Exception as e:
-        return jsonify({"error": str(e)}), 500
-
-@app.route('/incidents/<int:id>', methods=['PUT'])
-def update_incident(id):
-    """
-    Update an incident
-    ---
-    tags:
-      - Incidents
-    parameters:
-      - name: id
-        in: path
-        type: integer
-        required: true
-        description: Incident ID
-      - name: body
-        in: body
-        required: true
-        schema:
-          properties:
-            title:
-              type: string
-            description:
-              type: string
-    responses:
-      200:
-        description: Incident updated
-      404:
-        description: Incident not found
-    """
-    if id not in incidents:
-        return jsonify({"error": "Incident not found"}), 404
-
-    data = request.get_json()
-    incidents[id]["title"] = data.get("title", incidents[id]["title"])
-    incidents[id]["description"] = data.get("description", incidents[id]["description"])
-    return jsonify(incidents[id]), 200
-
-@app.route('/incidents/<int:id>', methods=['DELETE'])
-def delete_incident(id):
-    """
-    Delete an incident
-    ---
-    tags:
-      - Incidents
-    parameters:
-      - name: id
-        in: path
-        type: integer
-        required: true
-        description: Incident ID
-    responses:
-      200:
-        description: Incident deleted
-      404:
-        description: Incident not found
-    """
-    if id not in incidents:
-        return jsonify({"error": "Incident not found"}), 404
-
-    del incidents[id]
-    return jsonify({"message": f"Incident {id} deleted"}), 200
-
+# Run the app
 if __name__ == '__main__':
+    with app.app_context():
+        db.create_all()
     app.run(port=5555, debug=True)
