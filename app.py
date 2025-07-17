@@ -9,7 +9,7 @@ import os
 from models import db
 from extensions import jwt  
 
-# Load env vars
+
 load_dotenv()
 
 def create_app():
