@@ -26,7 +26,7 @@ def seed_database():
             user = User(
                 username=f"User {i}",
                 email=f"user{i}@example.com",
-                password_hash=f"hashed_password_{i}",  # Replace with hash if needed
+                password_hash=f"hashed_password_{i}",  
                 phone=random_phone(),
                 is_admin=is_admin
             )
