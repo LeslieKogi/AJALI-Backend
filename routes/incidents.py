@@ -3,8 +3,8 @@ from flask import Blueprint, request, jsonify
 from flask_jwt_extended import jwt_required, get_jwt_identity
 from werkzeug.utils import secure_filename
 import os
-from app import db, app
-from models import Incident, Media, StatusUpdate, User
+from models import db, Incident, Media, StatusHistory, User
+from flask import current_app
 from datetime import datetime
 
 incidents_bp = Blueprint('incidents', __name__)
