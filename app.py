@@ -1,3 +1,4 @@
+from datetime import timedelta
 from flask import Flask, jsonify
 from flask_cors import CORS
 from flask_migrate import Migrate
@@ -21,6 +22,7 @@ def create_app():
     app.config["SQLALCHEMY_DATABASE_URI"] = f"sqlite:///{db_path}"
     app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
     app.config["JWT_SECRET_KEY"] = os.getenv("JWT_SECRET_KEY", "dev")  
+    app.config["JWT_ACCESS_TOKEN_EXPIRES"] = timedelta(hours=7)
     app.config["UPLOAD_FOLDER"] = "./uploads"  
 
     CORS(app)

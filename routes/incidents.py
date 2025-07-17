@@ -31,7 +31,7 @@ def get_incidents():
         'longitude': float(incident.longitude),
         'status': incident.status,
         'created_at': incident.created_at.isoformat(),
-        'reporter': incident.reporter.username
+        'reporter': incident.user.username
     } for incident in incidents]), 200
 
 @incidents_bp.route('/', methods=['POST'])
@@ -45,6 +45,7 @@ def create_incident():
             user_id=current_user,
             title=data['title'],
             description=data['description'],
+            type=data['type'],
             latitude=data['latitude'],
             longitude=data['longitude']
         )
@@ -79,7 +80,7 @@ def create_incident():
         db.session.rollback()
         return jsonify({'message': str(e)}), 400
 
-@incidents_bp.route('/<int:id>', methods=['PUT'])
+@incidents_bp.route('/<int:id>', methods=['PUT']) #used 4 updating the status
 @jwt_required()
 def update_incident(id):
     current_user = get_jwt_identity()
@@ -118,7 +119,7 @@ def update_incident_status(id):
     data = request.get_json()
     
     try:
-        status_update = StatusUpdate(
+        status_update = StatusHistory(
             incident_id=incident.id,
             admin_id=current_user.id,
             old_status=incident.status,
