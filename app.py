@@ -6,11 +6,14 @@ from pathlib import Path
 from dotenv import load_dotenv
 import os
 
+import cloudinary
+
 from models import db
 from extensions import jwt  
 
 # Load env vars
 load_dotenv()
+
 
 def create_app():
     app = Flask(__name__, instance_relative_config=True)
@@ -23,7 +26,16 @@ def create_app():
     app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
     app.config["JWT_SECRET_KEY"] = os.getenv("JWT_SECRET_KEY", "dev")  
     app.config["JWT_ACCESS_TOKEN_EXPIRES"] = timedelta(hours=7)
-    app.config["UPLOAD_FOLDER"] = "./uploads"  
+    app.config["UPLOAD_FOLDER"] = "./uploads"
+
+
+        # Cloudinary config
+    cloudinary.config(
+        cloud_name=os.getenv("CLOUDINARY_CLOUD_NAME"),
+        api_key=os.getenv("CLOUDINARY_API_KEY"),
+        api_secret=os.getenv("CLOUDINARY_API_SECRET"),
+        secure=True
+    )
 
     CORS(app)
     db.init_app(app)

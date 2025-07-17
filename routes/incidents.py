@@ -5,13 +5,15 @@ from werkzeug.utils import secure_filename
 import os
 from models import db, Incident, Media, StatusHistory, User
 from flask import current_app
+import cloudinary.uploader
+
 from datetime import datetime
 
 incidents_bp = Blueprint('incidents', __name__)
 
 def allowed_file(filename):
     return '.' in filename and \
-           filename.rsplit('.', 1)[1].lower() in app.config['ALLOWED_EXTENSIONS']
+           filename.rsplit('.', 1)[1].lower() in {'png', 'jpg', 'jpeg', 'gif', 'mp4', 'mov'}
 
 @incidents_bp.route('/', methods=['GET'])
 def get_incidents():
@@ -70,25 +72,25 @@ def create_incident():
         db.session.commit()
         
         # Handle file uploads
+                # Handle file uploads with Cloudinary
         if 'files' in request.files:
             files = request.files.getlist('files')
-            
+
             for file in files:
                 if file and allowed_file(file.filename):
-                    filename = secure_filename(file.filename)
-                    filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
-                    file.save(filepath)
-                    
-                    file_type = 'image' if filename.lower().endswith(('png', 'jpg', 'jpeg')) else 'video'
-                    
+                    upload_result = cloudinary.uploader.upload(file)
+
+                    media_type = 'image' if upload_result["resource_type"] == "image" else 'video'
+
                     media = Media(
                         incident_id=new_incident.id,
-                        file_url=filepath,
-                        file_type=file_type
+                        file_url=upload_result["secure_url"],
+                        media_type=media_type
                     )
                     db.session.add(media)
-            
+
             db.session.commit()
+
         
         return jsonify({'message': 'Incident created successfully', 'id': new_incident.id}), 201
     
