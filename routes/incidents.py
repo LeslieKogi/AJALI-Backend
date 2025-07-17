@@ -21,9 +21,19 @@ def get_incidents():
     if status:
         query = query.filter_by(status=status)
     
-    incidents = query.order_by(Incident.created_at.desc()).all()
     
-    return jsonify([{
+    page = request.args.get('page', 1, type=int)
+    per_page = request.args.get('per_page', 10, type=int)
+
+    pagination = query.order_by(Incident.created_at.desc()).paginate(page=page, per_page=per_page, error_out=False)
+    incidents = pagination.items
+
+    
+    return jsonify({
+    'total': pagination.total,
+    'pages': pagination.pages,
+    'current_page': pagination.page,
+    'incidents': [{
         'id': incident.id,
         'title': incident.title,
         'description': incident.description,
@@ -32,7 +42,9 @@ def get_incidents():
         'status': incident.status,
         'created_at': incident.created_at.isoformat(),
         'reporter': incident.user.username
-    } for incident in incidents]), 200
+    } for incident in incidents]
+    }), 200
+
 
 @incidents_bp.route('/', methods=['POST'])
 @jwt_required()
@@ -40,6 +52,10 @@ def create_incident():
     current_user = get_jwt_identity()
     data = request.form
     
+    required_fields = ['title', 'description', 'type', 'latitude', 'longitude']
+    for field in required_fields:
+        if field not in data or not data[field].strip():
+            return jsonify({'message': f'{field} is required.'}), 400
     try:
         new_incident = Incident(
             user_id=current_user,
