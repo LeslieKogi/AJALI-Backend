@@ -3,6 +3,7 @@ import random
 
 from models import db, User, Incident, Media, StatusHistory, Notification
 from app import create_app  
+from werkzeug.security import generate_password_hash
 
 
 app = create_app()
@@ -12,7 +13,7 @@ def seed_database():
         db.drop_all()
         db.create_all()
 
-        # Sample data generators
+        
         def random_phone():
             return f"+1{random.randint(200, 999)}{random.randint(100, 999)}{random.randint(1000, 9999)}"
 
@@ -26,7 +27,7 @@ def seed_database():
             user = User(
                 username=f"User {i}",
                 email=f"user{i}@example.com",
-                password_hash=f"hashed_password_{i}",  
+                password_hash = generate_password_hash(f"password{i}"),   
                 phone=random_phone(),
                 is_admin=is_admin
             )
