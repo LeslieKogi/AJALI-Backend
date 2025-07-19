@@ -11,7 +11,7 @@ def send_welcome_email(email, username):
         "Messages": [
             {
                 "From": {
-                    "Email": "wariobaajona@gmail.com",  # replace with your sender email
+                    "Email": "wariobaajona@gmail.com",
                     "Name": "Ajali App"
                 },
                 "To": [
