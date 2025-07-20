@@ -7,6 +7,8 @@ from models import db, Incident, Media, StatusHistory, User
 from flask import current_app
 import cloudinary.uploader
 
+from send_incident_email import send_incident_confirmation_email
+
 from datetime import datetime
 
 incidents_bp = Blueprint('incidents', __name__)
@@ -51,49 +53,56 @@ def get_incidents():
 @incidents_bp.route('/', methods=['POST'])
 @jwt_required()
 def create_incident():
-    current_user = get_jwt_identity()
+    current_user_id = get_jwt_identity()
     data = request.form
-    
+
     required_fields = ['title', 'description', 'type', 'latitude', 'longitude']
     for field in required_fields:
         if field not in data or not data[field].strip():
             return jsonify({'message': f'{field} is required.'}), 400
+
     try:
+        # Create incident
         new_incident = Incident(
-            user_id=current_user,
+            user_id=current_user_id,
             title=data['title'],
             description=data['description'],
             type=data['type'],
             latitude=data['latitude'],
             longitude=data['longitude']
         )
-        
         db.session.add(new_incident)
         db.session.commit()
-        
+
         # Handle file uploads
-                # Handle file uploads with Cloudinary
         if 'files' in request.files:
             files = request.files.getlist('files')
-
             for file in files:
                 if file and allowed_file(file.filename):
                     upload_result = cloudinary.uploader.upload(file)
-
                     media_type = 'image' if upload_result["resource_type"] == "image" else 'video'
-
                     media = Media(
                         incident_id=new_incident.id,
                         file_url=upload_result["secure_url"],
                         media_type=media_type
                     )
                     db.session.add(media)
-
             db.session.commit()
 
-        
+        # ✅ Send confirmation email
+        user = User.query.get(current_user_id)
+        if user and user.email:
+            incident_data = {
+                'title': new_incident.title,
+                'description': new_incident.description,
+                'location': f"{new_incident.latitude}, {new_incident.longitude}",
+                'created_at': new_incident.created_at.strftime('%Y-%m-%d %H:%M:%S')
+            }
+            status_code, response = send_incident_confirmation_email(user.email, user.username, incident_data)
+            current_app.logger.info(f"Email sent: {status_code} - {response}")
+
         return jsonify({'message': 'Incident created successfully', 'id': new_incident.id}), 201
-    
+
     except Exception as e:
         db.session.rollback()
         return jsonify({'message': str(e)}), 400

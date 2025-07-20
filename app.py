@@ -9,7 +9,8 @@ import os
 import cloudinary
 
 from models import db
-from extensions import jwt  
+from extensions import jwt
+import logging
 
 # Load env vars
 load_dotenv()
@@ -17,6 +18,8 @@ load_dotenv()
 
 def create_app():
     app = Flask(__name__, instance_relative_config=True)
+
+    app.logger.setLevel(logging.INFO)
 
     # Config
     db_path = Path(app.instance_path) / "ajali.db"
