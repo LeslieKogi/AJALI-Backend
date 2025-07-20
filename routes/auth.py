@@ -1,10 +1,21 @@
 from flask import Blueprint, request, jsonify
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask_jwt_extended import create_access_token, jwt_required, get_jwt_identity
+<<<<<<< HEAD
 from app.app import db
 from ..app.models import User
+=======
+from mail import send_welcome_email
+from app import db
+from models import User
+
+>>>>>>> 8413ea579a4340f0896081502a1ad42901d29259
 
 auth_bp = Blueprint('auth', __name__)
+
+from flask import current_app
+# Import your send_welcome_email function, e.g. from mail.py
+from mail import send_welcome_email  # Adjust import path as needed
 
 @auth_bp.route('/register', methods=['POST'])
 def register():
@@ -27,7 +38,12 @@ def register():
     
     db.session.add(new_user)
     db.session.commit()
-    
+
+    # Send welcome email
+    status_code, response = send_welcome_email(new_user.email, new_user.username)
+    if status_code != 200:
+        current_app.logger.error(f"Failed to send welcome email: {response}")
+
     return jsonify({'message': 'User created successfully'}), 201
 
 @auth_bp.route('/login', methods=['POST'])
@@ -38,7 +54,7 @@ def login():
     if not user or not check_password_hash(user.password_hash, data['password']):
         return jsonify({'message': 'Invalid credentials'}), 401
     
-    access_token = create_access_token(identity=user)
+    access_token = create_access_token(identity=user.id)
     return jsonify(access_token=access_token), 200
 
 @auth_bp.route('/me', methods=['GET'])
