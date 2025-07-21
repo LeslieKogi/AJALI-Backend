@@ -3,17 +3,12 @@ from flask import Blueprint, request, jsonify
 from flask_jwt_extended import jwt_required, get_jwt_identity
 from werkzeug.utils import secure_filename
 import os
-<<<<<<< HEAD
-from app import db, app
-from app.models import Incident, Media, StatusUpdate, User
-=======
 from models import db, Incident, Media, StatusHistory, User
 from flask import current_app
 import cloudinary.uploader
 
 from send_incident_email import send_incident_confirmation_email
 
->>>>>>> 8413ea579a4340f0896081502a1ad42901d29259
 from datetime import datetime
 
 incidents_bp = Blueprint('incidents', __name__)
@@ -112,7 +107,7 @@ def create_incident():
         db.session.rollback()
         return jsonify({'message': str(e)}), 400
 
-@incidents_bp.route('/<int:id>', methods=['PUT']) #used 4 updating the incident title description latitude and longitude
+@incidents_bp.route('/<int:id>', methods=['PUT']) 
 @jwt_required()
 def update_incident(id):
     current_user = get_jwt_identity()

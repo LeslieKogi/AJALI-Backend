@@ -2,15 +2,10 @@
 from flask import Blueprint, request, jsonify
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask_jwt_extended import create_access_token, jwt_required, get_jwt_identity
-<<<<<<< HEAD
-from app import db
-from ..app.models import User
-=======
 from mail import send_welcome_email
 from app import db
 from models import User
 
->>>>>>> 8413ea579a4340f0896081502a1ad42901d29259
 
 auth_bp = Blueprint('auth', __name__)
 
