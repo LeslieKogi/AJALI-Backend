@@ -24,7 +24,7 @@ jobs:
         with:
           python-version: "3.x"
 
-    -name: Install dependencies
+    - name: Install dependencies
       run: |
         python3 -m pip install --upgrade pip
         pip install flake8 black isort bandit
