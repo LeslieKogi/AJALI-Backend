@@ -1,8 +1,11 @@
-FROM python:3.12-slim
-workdir /app
+FROM python:3.9
+WORKDIR /app
+
 COPY requirements.txt .
-RUN pip3 install --no-cache-dir -r requirements.txt 
+RUN pip install --no-cache-dir -r requirements.txt gunicorn
+
 COPY . .
-CMD ["python3", "app.py"]
-CMD ["./start.sh"]  
-EXPOSE 5555  
+
+EXPOSE 5555
+
+CMD ["gunicorn", "--bind", "0.0.0.0:5555", "app:app"]
