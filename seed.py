@@ -2,11 +2,11 @@ from datetime import datetime
 import random
 
 from models import db, User, Incident, Media, StatusHistory, Notification
-from app import create_app  
+from app import app 
 from werkzeug.security import generate_password_hash
 
 
-app = create_app()
+
 
 def seed_database():
     with app.app_context():

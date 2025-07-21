@@ -10,8 +10,7 @@ from models import User
 auth_bp = Blueprint('auth', __name__)
 
 from flask import current_app
-# Import your send_welcome_email function, e.g. from mail.py
-from mail import send_welcome_email  # Adjust import path as needed
+from mail import send_welcome_email  
 
 @auth_bp.route('/register', methods=['POST'])
 def register():
