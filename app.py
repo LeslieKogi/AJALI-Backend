@@ -3,6 +3,7 @@ from flask import Flask, jsonify
 from flask_cors import CORS
 from flask_jwt_extended import JWTManager
 from flask_migrate import Migrate
+from flask_sqlalchemy import SQLAlchemy  # <-- Add this import
 from pathlib import Path
 from dotenv import load_dotenv
 import os
@@ -33,24 +34,21 @@ cloudinary.config(
     secure=True
 )
 
-# Initialize extensions first
-db = SQLAlchemy(app)
+# Initialize extensions
+db = SQLAlchemy(app)  # Now this will work
 jwt = JWTManager(app)
 migrate = Migrate(app, db)
 
-# Move models import after db initialization
+# Import models after db is initialized
 from models import User, Incident, Media, Notification, StatusHistory
 
-# Delayed blueprint registration function
 def register_blueprints():
-    """Register all blueprints after db is initialized"""
+    """Register blueprints after all initializations"""
     from routes.auth import auth_bp
     from routes.incidents import incidents_bp
-    
     app.register_blueprint(auth_bp, url_prefix="/auth")
     app.register_blueprint(incidents_bp, url_prefix="/incidents")
 
-# Call the registration function after all initializations
 register_blueprints()
 
 @app.route('/')

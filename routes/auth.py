@@ -1,21 +1,13 @@
 from flask import Blueprint, request, jsonify, current_app
 from werkzeug.security import generate_password_hash, check_password_hash
-from flask_jwt_extended import (
-    create_access_token, 
-    jwt_required, 
-    get_jwt_identity,
-    JWTManager
-)
+from flask_jwt_extended import create_access_token, jwt_required, get_jwt_identity
 from mail import send_welcome_email
 from models import User
 
 auth_bp = Blueprint('auth', __name__)
 
-# Initialize JWTManager (if needed here)
-jwt = JWTManager()
-
-# Access db through Flask's context
 def get_db():
+    """Helper function to access db from Flask context"""
     return current_app.extensions['sqlalchemy'].db
 
 @auth_bp.route('/register', methods=['POST'])
@@ -41,7 +33,6 @@ def register():
     db.session.add(new_user)
     db.session.commit()
 
-    # Send welcome email
     status_code, response = send_welcome_email(new_user.email, new_user.username)
     if status_code != 200:
         current_app.logger.error(f"Failed to send welcome email: {response}")
@@ -76,14 +67,3 @@ def get_current_user():
         'email': user.email,
         'is_admin': user.is_admin
     }), 200
-
-# JWT Callbacks (if they need to be here)
-@jwt.user_identity_loader
-def user_identity_lookup(user):
-    return user.id
-
-@jwt.user_lookup_loader
-def user_lookup_callback(_jwt_header, jwt_data):
-    db = get_db()
-    identity = jwt_data["sub"]
-    return User.query.get(identity)
