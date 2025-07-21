@@ -10,6 +10,8 @@ import cloudinary
 
 from models import db, User, Incident, Media, Notification, StatusHistory
 
+# Load env vars
+load_dotenv()
 
 app = Flask(__name__, instance_relative_config=True)
 

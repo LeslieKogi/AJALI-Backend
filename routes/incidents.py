@@ -1,9 +1,10 @@
+# app/routes/incidents.py
 from flask import Blueprint, request, jsonify
 from flask_jwt_extended import jwt_required, get_jwt_identity
 from werkzeug.utils import secure_filename
 import os
 <<<<<<< HEAD
-from app.app import db, app
+from app import db, app
 from app.models import Incident, Media, StatusUpdate, User
 =======
 from models import db, Incident, Media, StatusHistory, User
@@ -111,7 +112,7 @@ def create_incident():
         db.session.rollback()
         return jsonify({'message': str(e)}), 400
 
-@incidents_bp.route('/<int:id>', methods=['PUT']) #used 4 updating the status
+@incidents_bp.route('/<int:id>', methods=['PUT']) #used 4 updating the incident title description latitude and longitude
 @jwt_required()
 def update_incident(id):
     current_user = get_jwt_identity()
@@ -152,10 +153,8 @@ def update_incident_status(id):
     try:
         status_update = StatusHistory(
             incident_id=incident.id,
-            admin_id=current_user.id,
             old_status=incident.status,
             new_status=data['status'],
-            notes=data.get('notes')
         )
         
         incident.status = data['status']
@@ -163,7 +162,7 @@ def update_incident_status(id):
         db.session.add(status_update)
         db.session.commit()
         
-        # Here you would add notification logic (email/SMS)
+        # add notification logic (email/SMS)
         
         return jsonify({'message': 'Status updated successfully'}), 200
     
