@@ -9,8 +9,6 @@ import os
 import logging
 import cloudinary
 
-from models import db, User, Incident, Media, Notification, StatusHistory
-
 # Load env vars
 load_dotenv()
 
@@ -35,17 +33,25 @@ cloudinary.config(
     secure=True
 )
 
-# Extensions
-db.init_app(app)  
+# Initialize extensions first
+db = SQLAlchemy(app)
 jwt = JWTManager(app)
-Migrate(app, db)
+migrate = Migrate(app, db)
 
-# Register blueprints
-from routes.auth import auth_bp
-from routes.incidents import incidents_bp
+# Move models import after db initialization
+from models import User, Incident, Media, Notification, StatusHistory
 
-app.register_blueprint(auth_bp, url_prefix="/auth")
-app.register_blueprint(incidents_bp, url_prefix="/incidents")
+# Delayed blueprint registration function
+def register_blueprints():
+    """Register all blueprints after db is initialized"""
+    from routes.auth import auth_bp
+    from routes.incidents import incidents_bp
+    
+    app.register_blueprint(auth_bp, url_prefix="/auth")
+    app.register_blueprint(incidents_bp, url_prefix="/incidents")
+
+# Call the registration function after all initializations
+register_blueprints()
 
 @app.route('/')
 def index():
