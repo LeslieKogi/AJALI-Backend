@@ -15,7 +15,7 @@ load_dotenv()
 def create_app():
     app = Flask(__name__, instance_relative_config=True)
     app.logger.setLevel(logging.INFO)
-    CORS(app)
+    CORS(app, origins=["http://localhost:5173"], supports_credentials=True)
 
     # Ensure instance folder exists
     db_path = Path(app.instance_path) / "ajali.db"
