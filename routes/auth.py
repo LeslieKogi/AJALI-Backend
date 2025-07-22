@@ -46,7 +46,7 @@ def login():
     access_token = create_access_token(identity=user.id)
     return jsonify(access_token=access_token), 200
 
-@auth_bp.route('/me', methods=['GET'])
+@auth_bp.route('/me', methods=['GET','OPTIONS'])
 @jwt_required(optional=True)
 def get_current_user():
     current_user_id = get_jwt_identity()
