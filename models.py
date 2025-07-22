@@ -1,10 +1,11 @@
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import MetaData
 from datetime import datetime
+from extensions import db
+
 
 metadata = MetaData()
 
-db = SQLAlchemy(metadata=metadata)
 
 class User(db.Model):
     __tablename__ = 'users'

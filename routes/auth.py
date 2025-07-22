@@ -3,16 +3,12 @@ from werkzeug.security import generate_password_hash, check_password_hash
 from flask_jwt_extended import create_access_token, jwt_required, get_jwt_identity
 from mail import send_welcome_email
 from models import User
+from app import db  
 
 auth_bp = Blueprint('auth', __name__)
 
-def get_db():
-    """Helper function to access db from Flask context"""
-    return current_app.extensions['sqlalchemy'].db
-
 @auth_bp.route('/register', methods=['POST'])
 def register():
-    db = get_db()
     data = request.get_json()
     
     if User.query.filter_by(email=data['email']).first():
@@ -41,7 +37,6 @@ def register():
 
 @auth_bp.route('/login', methods=['POST'])
 def login():
-    db = get_db()
     data = request.get_json()
     user = User.query.filter_by(email=data['email']).first()
     
@@ -54,7 +49,6 @@ def login():
 @auth_bp.route('/me', methods=['GET'])
 @jwt_required()
 def get_current_user():
-    db = get_db()
     current_user_id = get_jwt_identity()
     user = User.query.get(current_user_id)
     

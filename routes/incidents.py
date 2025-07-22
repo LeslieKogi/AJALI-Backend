@@ -89,7 +89,7 @@ def create_incident():
                     db.session.add(media)
             db.session.commit()
 
-        # ✅ Send confirmation email
+        #  Send confirmation email
         user = User.query.get(current_user_id)
         if user and user.email:
             incident_data = {
