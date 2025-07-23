@@ -15,7 +15,8 @@ load_dotenv()
 def create_app():
     app = Flask(__name__, instance_relative_config=True)
     app.logger.setLevel(logging.INFO)
-    CORS(app, origins=["http://localhost:5173"], supports_credentials=True)
+    CORS(app, resources={r"/*": {"origins": "http://localhost:5173"}}, supports_credentials=True)
+
 
     @app.after_request
     def add_headers(response):
