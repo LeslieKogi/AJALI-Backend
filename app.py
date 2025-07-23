@@ -15,12 +15,12 @@ load_dotenv()
 def create_app():
     app = Flask(__name__, instance_relative_config=True)
     app.logger.setLevel(logging.INFO)
-    CORS(app, resources={r"/*": {"origins": "http://localhost:5173"}}, supports_credentials=True)
+    CORS(app, resources={r"/*": {"origins": "https://localhost:5173"}}, supports_credentials=True)
 
 
     @app.after_request
     def add_headers(response):
-        response.headers["Access-Control-Allow-Origin"] = "http://localhost:5173"
+        response.headers["Access-Control-Allow-Origin"] = "https://localhost:5173"
         response.headers["Access-Control-Allow-Credentials"] = "true"
         response.headers["Access-Control-Allow-Headers"] = "Content-Type, Authorization"
         response.headers["Access-Control-Allow-Methods"] = "GET, POST, PUT, DELETE, OPTIONS"
