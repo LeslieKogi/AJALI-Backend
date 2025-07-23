@@ -17,10 +17,14 @@ def create_app():
     app.logger.setLevel(logging.INFO)
     CORS(app, origins=["http://localhost:5173"], supports_credentials=True)
 
-     @app.after_request
+    @app.after_request
     def add_headers(response):
-        print(response.headers)  # Logs the headers in the terminal or logs
+        response.headers["Access-Control-Allow-Origin"] = "http://localhost:5173"
+        response.headers["Access-Control-Allow-Credentials"] = "true"
+        response.headers["Access-Control-Allow-Headers"] = "Content-Type, Authorization"
+        response.headers["Access-Control-Allow-Methods"] = "GET, POST, PUT, DELETE, OPTIONS"
         return response
+
 
     # Ensure instance folder exists
     db_path = Path(app.instance_path) / "ajali.db"
