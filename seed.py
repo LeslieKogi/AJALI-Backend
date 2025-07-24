@@ -2,18 +2,16 @@ from datetime import datetime
 import random
 
 from models import db, User, Incident, Media, StatusHistory, Notification
-from app import app 
+from app import create_app  # ✅ Import the factory
 from werkzeug.security import generate_password_hash
 
-
-
+app = create_app()  # ✅ Create app instance here
 
 def seed_database():
     with app.app_context():
         db.drop_all()
         db.create_all()
 
-        
         def random_phone():
             return f"+1{random.randint(200, 999)}{random.randint(100, 999)}{random.randint(1000, 9999)}"
 
@@ -27,7 +25,7 @@ def seed_database():
             user = User(
                 username=f"User {i}",
                 email=f"user{i}@example.com",
-                password_hash = generate_password_hash(f"password{i}"),   
+                password_hash=generate_password_hash(f"password{i}"),
                 phone=random_phone(),
                 is_admin=is_admin
             )

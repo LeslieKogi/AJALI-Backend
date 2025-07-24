@@ -27,6 +27,7 @@ def create_app():
         return response
 
 
+
     # Ensure instance folder exists
     db_path = Path(app.instance_path) / "ajali.db"
     Path(app.instance_path).mkdir(parents=True, exist_ok=True)
@@ -69,4 +70,4 @@ def create_app():
 # Run the app
 if __name__ == '__main__':
     app = create_app()
-    app.run(host='0.0.0.0', port=5555)
+    app.run(host='localhost', port=5555, ssl_context=('certs/cert.pem', 'certs/key.pem'))

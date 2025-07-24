@@ -46,7 +46,21 @@ def login():
     access_token = create_access_token(identity=user.id)
     return jsonify(access_token=access_token), 200
 
-@auth_bp.route('/me', methods=['GET','OPTIONS'])
+@auth_bp.route('/me', methods=['GET', 'OPTIONS'])
+def get_current_user():
+    if request.method == 'OPTIONS':
+        # Let Flask-CORS handle this, or return early if needed
+        return '', 200
+
+    # JWT protection only for actual GET
+    @jwt_required()
+    def protected_get():
+        current_user_id = get_jwt_identity()
+        # Retrieve user info from DB or context
+        return jsonify({"user_id": current_user_id}), 200
+
+    return protected_get()
+
 @jwt_required(optional=True)
 def get_current_user():
     current_user_id = get_jwt_identity()

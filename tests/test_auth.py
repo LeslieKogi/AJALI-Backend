@@ -1,17 +1,7 @@
 import pytest
-<<<<<<< HEAD
-
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
-from app import create_app, db
-try:
-    from app.models import User
-except ImportError:
-    raise ImportError("Ensure 'app/models.py' exists and is properly structured.")
-=======
 from app import create_app
 from models import db, User
 from werkzeug.security import generate_password_hash
->>>>>>> d42a1e6320825fd4426016c2d6e86f0a4b87286c
 
 @pytest.fixture
 def app():

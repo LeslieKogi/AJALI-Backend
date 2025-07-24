@@ -11,7 +11,7 @@ from send_incident_email import send_incident_confirmation_email
 
 from datetime import datetime
 
-incidents_bp = Blueprint('incidents', __name__)
+incidents_bp = Blueprint('incidents', __name__, url_prefix='/incidents')
 
 def allowed_file(filename):
     return '.' in filename and \
@@ -50,7 +50,7 @@ def get_incidents():
     }), 200
 
 
-@incidents_bp.route('/', methods=['POST'])
+@incidents_bp.route('', methods=['POST'])
 @jwt_required()
 def create_incident():
     current_user_id = get_jwt_identity()
