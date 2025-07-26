@@ -20,19 +20,21 @@ def allowed_file(filename):
 @incidents_bp.route('/', methods=['GET'])
 def get_incidents():
     status = request.args.get('status')
-    query = Incident.query
+    reporter = request.args.get('reporter')  
+    query = Incident.query.join(User)  # Join so we can filter by username
     
     if status:
-        query = query.filter_by(status=status)
-    
-    
+        query = query.filter(Incident.status == status)
+
+    if reporter:
+        query = query.filter(User.username == reporter)  
+
     page = request.args.get('page', 1, type=int)
     per_page = request.args.get('per_page', 10, type=int)
 
     pagination = query.order_by(Incident.created_at.desc()).paginate(page=page, per_page=per_page, error_out=False)
     incidents = pagination.items
 
-    
     return jsonify({
     'total': pagination.total,
     'pages': pagination.pages,
@@ -49,6 +51,7 @@ def get_incidents():
         'reporter': incident.user.username
     } for incident in incidents]
     }), 200
+
 
 
 @incidents_bp.route('', methods=['POST'])
