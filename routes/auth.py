@@ -46,18 +46,26 @@ def login():
     access_token = create_access_token(identity=user.id)
     return jsonify(access_token=access_token), 200
 
-@auth_bp.route('/me', methods=['GET', 'OPTIONS'])
+@auth_bp.route('/me', methods=['GET'])
 def get_current_user():
     if request.method == 'OPTIONS':
-        # Let Flask-CORS handle this, or return early if needed
         return '', 200
 
-    # JWT protection only for actual GET
     @jwt_required()
     def protected_get():
         current_user_id = get_jwt_identity()
-        # Retrieve user info from DB or context
-        return jsonify({"user_id": current_user_id}), 200
+        user = User.query.get(current_user_id)
+
+        if not user:
+            return jsonify({"error": "User not found"}), 404
+
+        return jsonify({
+            "user": {
+                "id": user.id,
+                "username": user.username,
+                "email": user.email,
+            }
+        }), 200
 
     return protected_get()
 
@@ -74,4 +82,29 @@ def get_current_user():
         'username': user.username,
         'email': user.email,
         'is_admin': user.is_admin
+    }), 200
+
+
+@auth_bp.route('/users', methods=['GET'])
+@jwt_required()
+def get_all_users():
+    current_user_id = get_jwt_identity()
+    current_user = User.query.get(current_user_id)
+
+    if not current_user or not current_user.is_admin:
+        return jsonify({'message': 'Unauthorized'}), 403
+
+    users = User.query.all()
+    return jsonify({
+        'users': [
+            {
+                'id': user.id,
+                'username': user.username,
+                'email': user.email,
+                'phone': user.phone,
+                'is_admin': user.is_admin,
+                'created_at': user.created_at.isoformat()
+            }
+            for user in users
+        ]
     }), 200

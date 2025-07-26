@@ -41,6 +41,7 @@ def get_incidents():
         'id': incident.id,
         'title': incident.title,
         'description': incident.description,
+        'type': incident.type,  # ✅ Add this line
         'latitude': float(incident.latitude),
         'longitude': float(incident.longitude),
         'status': incident.status,
@@ -133,6 +134,22 @@ def update_incident(id):
     except Exception as e:
         db.session.rollback()
         return jsonify({'message': str(e)}), 400
+
+@incidents_bp.route('/<int:id>/media', methods=['GET'])
+@jwt_required()
+def get_incident_media(id):
+    incident = Incident.query.get_or_404(id)
+    media_list = [
+        {
+            "id": m.id,
+            "media_type": m.media_type,
+            "file_url": m.file_url,
+            "uploaded_at": m.uploaded_at.isoformat()
+        }
+        for m in incident.media
+    ]
+    return jsonify(media_list), 200
+
 
 @incidents_bp.route('/<int:id>/status', methods=['PUT'])
 @jwt_required()
