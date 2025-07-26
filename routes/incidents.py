@@ -154,6 +154,29 @@ def get_incident_media(id):
     return jsonify(media_list), 200
 
 
+
+@incidents_bp.route('/<int:incident_id>', methods=['DELETE'])
+@jwt_required()
+def delete_incident(incident_id):
+    incident = Incident.query.get(incident_id)
+    if not incident:
+        return jsonify({"message": "Incident not found"}), 404
+
+    # Delete associated media
+    for media in incident.media:
+        db.session.delete(media)
+
+    # ✅ Delete associated status history
+    for status in incident.history:
+        db.session.delete(status)
+
+    # Now delete the incident itself
+    db.session.delete(incident)
+    db.session.commit()
+
+    return jsonify({"message": "Incident and associated media/status history deleted"}), 200
+
+
 @incidents_bp.route('/<int:id>/status', methods=['PUT'])
 @jwt_required()
 def update_incident_status(id):
