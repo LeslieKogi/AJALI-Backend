@@ -108,3 +108,47 @@ def get_all_users():
             for user in users
         ]
     }), 200
+
+@auth_bp.route('/users/<int:user_id>', methods=['DELETE', 'OPTIONS'])
+@jwt_required()
+def delete_user(user_id):
+    if request.method == 'OPTIONS':
+        # Handle preflight request
+        response = jsonify({'message': 'Preflight request accepted'})
+        response.headers.add('Access-Control-Allow-Origin', 'http://localhost:5173')
+        response.headers.add('Access-Control-Allow-Methods', 'DELETE')
+        response.headers.add('Access-Control-Allow-Headers', 'Content-Type, Authorization')
+        response.headers.add('Access-Control-Allow-Credentials', 'true')
+        return response, 200
+
+    current_user_id = get_jwt_identity()
+    current_user = User.query.get(current_user_id)
+
+    # Check if current user is admin
+    if not current_user:
+        return jsonify({'message': 'User not found'}), 404
+    if not current_user.is_admin:
+        return jsonify({'message': 'Unauthorized - Admin access required'}), 403
+
+    # Check if user exists
+    user_to_delete = User.query.get(user_id)
+    if not user_to_delete:
+        return jsonify({'message': 'User not found'}), 404
+
+    # Prevent self-deletion
+    if user_to_delete.id == current_user.id:
+        return jsonify({'message': 'Cannot delete yourself'}), 400
+
+    try:
+        # Delete the user
+        db.session.delete(user_to_delete)
+        db.session.commit()
+        
+        response = jsonify({'message': 'User deleted successfully'})
+        response.headers.add('Access-Control-Allow-Origin', 'http://localhost:5173')
+        return response, 200
+        
+    except Exception as e:
+        db.session.rollback()
+        current_app.logger.error(f"Error deleting user: {str(e)}")
+        return jsonify({'message': 'Failed to delete user', 'error': str(e)}), 500

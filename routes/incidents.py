@@ -21,7 +21,7 @@ def allowed_file(filename):
 def get_incidents():
     status = request.args.get('status')
     reporter = request.args.get('reporter')  
-    query = Incident.query.join(User)  # Join so we can filter by username
+    query = Incident.query.join(User)
     
     if status:
         query = query.filter(Incident.status == status)
