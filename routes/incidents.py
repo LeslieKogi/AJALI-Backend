@@ -207,3 +207,52 @@ def update_incident_status(id):
     except Exception as e:
         db.session.rollback()
         return jsonify({'message': str(e)}), 400
+
+@incidents_bp.route('/all', methods=['GET'])
+@jwt_required()
+def get_all_incidents():
+    try:
+        # Get query parameters for filtering
+        status = request.args.get('status')
+        incident_type = request.args.get('type')
+        
+        # Base query
+        query = Incident.query.join(User)
+        
+        # Apply filters if they exist
+        if status:
+            query = query.filter(Incident.status == status)
+        if incident_type:
+            query = query.filter(Incident.type == incident_type)
+            
+        # Get pagination parameters
+        page = request.args.get('page', 1, type=int)
+        per_page = request.args.get('per_page', 10, type=int)
+        
+        # Execute query with pagination
+        pagination = query.order_by(Incident.created_at.desc()).paginate(
+            page=page, 
+            per_page=per_page, 
+            error_out=False
+        )
+        incidents = pagination.items
+        
+        return jsonify({
+            'total': pagination.total,
+            'pages': pagination.pages,
+            'current_page': pagination.page,
+            'incidents': [{
+                'id': incident.id,
+                'title': incident.title,
+                'description': incident.description,
+                'type': incident.type,
+                'latitude': float(incident.latitude),
+                'longitude': float(incident.longitude),
+                'status': incident.status,
+                'created_at': incident.created_at.isoformat(),
+                'reporter': incident.user.username
+            } for incident in incidents]
+        }), 200
+        
+    except Exception as e:
+        return jsonify({'message': str(e)}), 500
