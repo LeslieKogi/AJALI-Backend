@@ -59,11 +59,13 @@ def get_incidents():
 def create_incident():
     current_user_id = get_jwt_identity()
     data = request.form
+    
+    print("Incoming form data:", data)
 
     required_fields = ['title', 'description', 'type', 'latitude', 'longitude']
-    for field in required_fields:
-        if field not in data or not data[field].strip():
-            return jsonify({'message': f'{field} is required.'}), 400
+    #for field in required_fields:
+    #    if field not in data or not data[field].strip():
+     #       return jsonify({'message': f'{field} is required.'}), 400
 
     try:
         # Create incident
