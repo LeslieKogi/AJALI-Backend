@@ -7,7 +7,7 @@ import os
 import logging
 import cloudinary
 
-from extensions import db, jwt, migrate  # Import from extensions
+from extensions import db, jwt, migrate  
 
 # Load environment variables
 load_dotenv()
@@ -16,7 +16,7 @@ def create_app():
     app = Flask(__name__, instance_relative_config=True)
     app.logger.setLevel(logging.INFO)
 
-    # Allow custom CORS headers for local dev (optional)
+    # Allow custom CORS headers for local dev 
     @app.after_request
     def add_headers(response):
         response.headers["Access-Control-Allow-Origin"] = "https://ajali-frontend-1323.onrender.com"
@@ -25,7 +25,7 @@ def create_app():
         response.headers["Access-Control-Allow-Methods"] = "GET, POST, PUT, DELETE, OPTIONS"
         return response
 
-    # Ensure instance folder exists
+    
     db_path = Path(app.instance_path) / "ajali.db"
     Path(app.instance_path).mkdir(parents=True, exist_ok=True)
 

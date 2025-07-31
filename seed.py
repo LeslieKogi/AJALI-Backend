@@ -2,10 +2,10 @@ from datetime import datetime
 import random
 
 from models import db, User, Incident, Media, StatusHistory, Notification
-from app import create_app  # ✅ Import the factory
+from app import create_app  
 from werkzeug.security import generate_password_hash
 
-app = create_app()  # ✅ Create app instance here
+app = create_app()  # app instance here
 
 def seed_database():
     with app.app_context():

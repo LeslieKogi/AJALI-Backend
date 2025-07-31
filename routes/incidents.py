@@ -43,7 +43,7 @@ def get_incidents():
         'id': incident.id,
         'title': incident.title,
         'description': incident.description,
-        'type': incident.type,  # ✅ Add this line
+        'type': incident.type,  
         'latitude': float(incident.latitude),
         'longitude': float(incident.longitude),
         'status': incident.status,
@@ -166,7 +166,7 @@ def delete_incident(incident_id):
     for media in incident.media:
         db.session.delete(media)
 
-    # ✅ Delete associated status history
+    # Delete associated status history
     for status in incident.history:
         db.session.delete(status)
 
