@@ -72,3 +72,5 @@ def create_app():
 if __name__ == '__main__':
     app = create_app()
     app.run(host='localhost', port=5555, ssl_context=('certs/cert.pem', 'certs/key.pem'))
+
+app = create_app()
