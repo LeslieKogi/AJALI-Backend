@@ -19,7 +19,7 @@ def create_app():
     # Allow custom CORS headers for local dev 
     @app.after_request
     def add_headers(response):
-        response.headers["Access-Control-Allow-Origin"] = "https://ajali-frontend-1323.onrender.com"
+        response.headers["Access-Control-Allow-Origin"] = "https://localhost:5173"
         response.headers["Access-Control-Allow-Credentials"] = "true"
         response.headers["Access-Control-Allow-Headers"] = "Content-Type, Authorization"
         response.headers["Access-Control-Allow-Methods"] = "GET, POST, PUT, DELETE, OPTIONS"
@@ -55,12 +55,14 @@ def create_app():
     # Register blueprints
     from routes.auth import auth_bp
     from routes.incidents import incidents_bp
+    from routes.incidents import media_bp
     app.register_blueprint(auth_bp, url_prefix="/auth")
     app.register_blueprint(incidents_bp, url_prefix="/incidents")
+    app.register_blueprint(media_bp, url_prefix='/api')
 
     # CORS setup
     from flask_cors import CORS
-    CORS(app, origins="https://ajali-frontend-1323.onrender.com", supports_credentials=True)
+    CORS(app, origins="https://localhost:5173", supports_credentials=True)
 
     @app.route('/')
     def index():
@@ -73,4 +75,3 @@ if __name__ == '__main__':
     app = create_app()
     app.run(host='localhost', port=5555, ssl_context=('certs/cert.pem', 'certs/key.pem'))
 
-app = create_app()

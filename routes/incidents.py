@@ -12,6 +12,7 @@ from send_incident_email import send_incident_confirmation_email
 from datetime import datetime
 
 incidents_bp = Blueprint('incidents', __name__, url_prefix='/incidents')
+media_bp = Blueprint('media_bp', __name__)
 
 def allowed_file(filename):
     return '.' in filename and \
@@ -258,3 +259,13 @@ def get_all_incidents():
         
     except Exception as e:
         return jsonify({'message': str(e)}), 500
+
+@media_bp.route('/media', methods=['GET'])
+def get_media():
+    media = Media.query.all()
+    return jsonify([{
+        'id': m.id,
+        'incident_id': m.incident_id,
+        'file_url': m.file_url,
+        'media_type': m.media_type
+    } for m in media])
