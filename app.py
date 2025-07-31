@@ -15,18 +15,15 @@ load_dotenv()
 def create_app():
     app = Flask(__name__, instance_relative_config=True)
     app.logger.setLevel(logging.INFO)
-    CORS(app, origins="https://localhost:5173", supports_credentials=True)
 
-
+    # Allow custom CORS headers for local dev (optional)
     @app.after_request
     def add_headers(response):
-        response.headers["Access-Control-Allow-Origin"] = "https://localhost:5173"
+        response.headers["Access-Control-Allow-Origin"] = "https://ajali-frontend-1323.onrender.com"
         response.headers["Access-Control-Allow-Credentials"] = "true"
         response.headers["Access-Control-Allow-Headers"] = "Content-Type, Authorization"
         response.headers["Access-Control-Allow-Methods"] = "GET, POST, PUT, DELETE, OPTIONS"
         return response
-
-
 
     # Ensure instance folder exists
     db_path = Path(app.instance_path) / "ajali.db"
@@ -60,6 +57,10 @@ def create_app():
     from routes.incidents import incidents_bp
     app.register_blueprint(auth_bp, url_prefix="/auth")
     app.register_blueprint(incidents_bp, url_prefix="/incidents")
+
+    # CORS setup
+    from flask_cors import CORS
+    CORS(app, origins="https://ajali-frontend-1323.onrender.com", supports_credentials=True)
 
     @app.route('/')
     def index():
