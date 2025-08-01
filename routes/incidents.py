@@ -60,6 +60,8 @@ def create_incident():
     current_user_id = get_jwt_identity()
     data = request.form
     
+    print("🔥 FORM DATA:", request.form)
+    print("🔥 FILES:", request.files)
     print("Incoming form data:", data)
 
     required_fields = ['title', 'description', 'type', 'latitude', 'longitude']
@@ -82,18 +84,33 @@ def create_incident():
 
         # Handle file uploads
         if 'files' in request.files:
+            print("🔥 Files received:", request.files)
             files = request.files.getlist('files')
+
             for file in files:
                 if file and allowed_file(file.filename):
-                    upload_result = cloudinary.uploader.upload(file)
-                    media_type = 'image' if upload_result["resource_type"] == "image" else 'video'
-                    media = Media(
-                        incident_id=new_incident.id,
-                        file_url=upload_result["secure_url"],
-                        media_type=media_type
-                    )
-                    db.session.add(media)
+                    try:
+                        upload_result = cloudinary.uploader.upload(file)
+                        print("✅ Cloudinary upload result:", upload_result)
+
+                        media_type = 'image' if upload_result["resource_type"] == "image" else 'video'
+                        media = Media(
+                            incident_id=new_incident.id,
+                            file_url=upload_result["secure_url"],
+                            media_type=media_type
+                        )
+                        db.session.add(media)
+
+                    except Exception as cloud_error:
+                        print("❌ Cloudinary Upload Failed:", str(cloud_error))
+                        return jsonify({
+                            'message': 'Image upload failed',
+                            'error': str(cloud_error)
+                        }), 400
+
             db.session.commit()
+        else:
+            print("🚫 No 'files' key in request.files")
 
         #  Send confirmation email
         user = User.query.get(current_user_id)
